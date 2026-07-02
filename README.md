@@ -1,14 +1,15 @@
 <!-- Header Badges -->
 <div align="center">
 
-# 🗄️ Prisma Setup Guide
+# 🛠️ Backend Setup Guide
 
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Bun](https://img.shields.io/badge/Bun-Package_Manager-FBF0DF?style=for-the-badge&logo=bun&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ESM-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Express](https://img.shields.io/badge/Express-Framework-000000?style=for-the-badge&logo=express&logoColor=white)
 
-A step-by-step reference guide for setting up **Prisma ORM** in a TypeScript project using **Bun** as the package manager.
+A step-by-step reference guide for setting up a **TypeScript backend** with **Express**, **Prisma ORM**, and **Bun** as the package manager.
 
 📖 [Official Prisma Docs](https://www.prisma.io/docs/prisma-postgres/quickstart/prisma-orm#1-create-a-new-project)
 
@@ -18,7 +19,7 @@ A step-by-step reference guide for setting up **Prisma ORM** in a TypeScript pro
 
 ## 📋 Table of Contents
 
-- [🗄️ Prisma Setup Guide](#️-prisma-setup-guide)
+- [🛠️ Backend Setup Guide](#️-backend-setup-guide)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Quick Reference](#-quick-reference)
   - [Step 1 — Project Initialization](#step-1--project-initialization)
@@ -35,13 +36,13 @@ A step-by-step reference guide for setting up **Prisma ORM** in a TypeScript pro
 
 > Jump straight to the commands if you already know the setup.
 
-| #   | Task                      | Command                              |
-| --- | ------------------------- | ------------------------------------ |
-| 1   | Initialize Prisma         | `bunx --bun prisma init`             |
-| 2   | Run a Migration           | `bunx prisma migrate dev`            |
-| 3   | Generate Prisma Client    | `bunx --bun prisma generate`         |
-| 4   | Open Prisma Studio (GUI)  | `bunx prisma studio`                 |
-| 5   | Deploy (Production Only)  | `bunx prisma migrate deploy`         |
+| #   | Task                     | Command                      |
+| --- | ------------------------ | ---------------------------- |
+| 1   | Initialize Prisma        | `bunx --bun prisma init`     |
+| 2   | Run a Migration          | `bunx prisma migrate dev`    |
+| 3   | Generate Prisma Client   | `bunx --bun prisma generate` |
+| 4   | Open Prisma Studio (GUI) | `bunx prisma studio`         |
+| 5   | Deploy (Production Only) | `bunx prisma migrate deploy` |
 
 ---
 
@@ -61,6 +62,7 @@ git init
 ```
 
 📄 `.gitignore`
+
 ```
 node_modules
 .env
@@ -78,6 +80,8 @@ bun init -y
 ---
 
 ## Step 2 — Install Dependencies
+
+### 🔧 Core Tooling
 
 📦 **Dev Dependencies** — TypeScript tooling + Prisma CLI:
 
@@ -99,6 +103,48 @@ bunx tsc --init
 
 > [!NOTE]
 > Bun automatically loads `.env` files, so `import 'dotenv/config'` is not required. Remove it if it appears in any generated files.
+
+---
+
+### 🌐 Express Server & Middleware
+
+📦 **Runtime Dependencies** — Express + middleware packages:
+
+```bash
+bun add express cors jsonwebtoken cookie-parser http-status bcrypt
+```
+
+📦 **Dev Dependencies** — TypeScript type definitions:
+
+```bash
+bun add -d @types/express @types/cors @types/jsonwebtoken @types/cookie-parser @types/bcrypt
+```
+
+#### 📖 Package Descriptions
+
+**Runtime Packages:**
+
+| Package         | Description                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| `express`       | Minimal and flexible Node.js web framework for building APIs and handling HTTP requests/responses    |
+| `cors`          | Middleware that enables **Cross-Origin Resource Sharing**, allowing your API to accept requests from different domains/ports |
+| `jsonwebtoken`  | Used to **sign and verify JWTs** (JSON Web Tokens) for authentication and authorization              |
+| `cookie-parser` | Middleware that **parses cookies** attached to incoming requests, making them accessible via `req.cookies` |
+| `http-status`   | Provides **readable HTTP status code constants** (e.g., `httpStatus.OK` instead of `200`)           |
+| `bcrypt`        | Used to **hash and compare passwords** securely before storing them in the database                  |
+
+**Dev Packages (Type Definitions):**
+
+| Package                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `@types/express`         | TypeScript type definitions for Express        |
+| `@types/cors`            | TypeScript type definitions for cors           |
+| `@types/jsonwebtoken`    | TypeScript type definitions for jsonwebtoken   |
+| `@types/cookie-parser`   | TypeScript type definitions for cookie-parser  |
+| `@types/bcrypt`          | TypeScript type definitions for bcrypt         |
+
+> [!NOTE]
+> `http-status` ships with its own type definitions, so no separate `@types/http-status` package is needed.
 
 ---
 
@@ -144,11 +190,11 @@ bunx --bun prisma init --output ./generated/prisma
 
 ✅ This command automatically generates:
 
-| Generated Item         | Description                                       |
-| ---------------------- | ------------------------------------------------- |
-| `prisma/schema.prisma` | Your database schema definition file             |
-| `.env`                 | Root-level file for environment variables        |
-| `prisma.config.ts`     | Prisma configuration file                        |
+| Generated Item         | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `prisma/schema.prisma` | Your database schema definition file       |
+| `.env`                 | Root-level file for environment variables  |
+| `prisma.config.ts`     | Prisma configuration file                  |
 
 > [!IMPORTANT]
 > Always use `bunx --bun` (not just `bunx`) for Prisma commands. The `--bun` flag forces the command to run on Bun's runtime instead of Node.js.
@@ -188,6 +234,7 @@ You will be prompted to name the migration. Example:
 
 > [!WARNING]
 > `migrate dev` is a **development-only** command. For production environments, use:
+>
 > ```bash
 > bunx prisma migrate deploy
 > ```
@@ -212,6 +259,6 @@ bunx --bun prisma generate
 
 <div align="center">
 
-Made for learning purposes 🎓 | Full-Stack Development — Prisma Backend Module
+Made for learning purposes 🎓 | Full-Stack Development — Backend Setup Module
 
 </div>
