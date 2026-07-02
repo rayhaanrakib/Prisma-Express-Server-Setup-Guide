@@ -124,27 +124,53 @@ bun add -d @types/express @types/cors @types/jsonwebtoken @types/cookie-parser @
 
 **Runtime Packages:**
 
-| Package         | Description                                                                                          |
-| --------------- | ---------------------------------------------------------------------------------------------------- |
-| `express`       | Minimal and flexible Node.js web framework for building APIs and handling HTTP requests/responses    |
-| `cors`          | Middleware that enables **Cross-Origin Resource Sharing**, allowing your API to accept requests from different domains/ports |
-| `jsonwebtoken`  | Used to **sign and verify JWTs** (JSON Web Tokens) for authentication and authorization              |
-| `cookie-parser` | Middleware that **parses cookies** attached to incoming requests, making them accessible via `req.cookies` |
-| `http-status`   | Provides **readable HTTP status code constants** (e.g., `httpStatus.OK` instead of `200`)           |
-| `bcrypt`        | Used to **hash and compare passwords** securely before storing them in the database                  |
+| Package         | Description                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `express`       | Minimal and flexible Node.js web framework for building APIs and handling HTTP requests/responses                             |
+| `cors`          | Middleware that enables **Cross-Origin Resource Sharing**, allowing your API to accept requests from different domains/ports  |
+| `jsonwebtoken`  | Used to **sign and verify JWTs** (JSON Web Tokens) for authentication and authorization                                       |
+| `cookie-parser` | Middleware that **parses cookies** attached to incoming requests, making them accessible via `req.cookies`                    |
+| `http-status`   | Provides **readable HTTP status code constants** (e.g., `httpStatus.OK` instead of `200`)                                    |
+| `bcrypt`        | Used to **hash and compare passwords** securely before storing them in the database                                           |
 
 **Dev Packages (Type Definitions):**
 
-| Package                  | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `@types/express`         | TypeScript type definitions for Express        |
-| `@types/cors`            | TypeScript type definitions for cors           |
-| `@types/jsonwebtoken`    | TypeScript type definitions for jsonwebtoken   |
-| `@types/cookie-parser`   | TypeScript type definitions for cookie-parser  |
-| `@types/bcrypt`          | TypeScript type definitions for bcrypt         |
+| Package                | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `@types/express`       | TypeScript type definitions for Express       |
+| `@types/cors`          | TypeScript type definitions for cors          |
+| `@types/jsonwebtoken`  | TypeScript type definitions for jsonwebtoken  |
+| `@types/cookie-parser` | TypeScript type definitions for cookie-parser |
+| `@types/bcrypt`        | TypeScript type definitions for bcrypt        |
 
 > [!NOTE]
 > `http-status` ships with its own type definitions, so no separate `@types/http-status` package is needed.
+
+---
+
+### 🐘 PostgreSQL Client
+
+📦 **Runtime Dependencies** — PostgreSQL client for Node.js:
+
+```bash
+bun add pg
+```
+
+📦 **Dev Dependencies** — TypeScript type definitions:
+
+```bash
+bun add -d @types/pg
+```
+
+#### 📖 Package Descriptions
+
+| Package    | Type    | Description                                                                                          |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `pg`       | Runtime | The **PostgreSQL client for Node.js** — allows direct communication with your PostgreSQL database    |
+| `@types/pg`| Dev     | TypeScript type definitions for `pg`                                                                 |
+
+> [!NOTE]
+> `pg` is the underlying driver that `@prisma/adapter-pg` depends on to communicate with PostgreSQL. Installing it explicitly gives you direct access to the PostgreSQL client when needed outside of Prisma.
 
 ---
 
@@ -190,11 +216,11 @@ bunx --bun prisma init --output ./generated/prisma
 
 ✅ This command automatically generates:
 
-| Generated Item         | Description                                |
-| ---------------------- | ------------------------------------------ |
-| `prisma/schema.prisma` | Your database schema definition file       |
-| `.env`                 | Root-level file for environment variables  |
-| `prisma.config.ts`     | Prisma configuration file                  |
+| Generated Item         | Description                               |
+| ---------------------- | ----------------------------------------- |
+| `prisma/schema.prisma` | Your database schema definition file      |
+| `.env`                 | Root-level file for environment variables |
+| `prisma.config.ts`     | Prisma configuration file                 |
 
 > [!IMPORTANT]
 > Always use `bunx --bun` (not just `bunx`) for Prisma commands. The `--bun` flag forces the command to run on Bun's runtime instead of Node.js.
