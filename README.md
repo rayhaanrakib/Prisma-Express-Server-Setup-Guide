@@ -27,13 +27,14 @@ A step-by-step reference guide for setting up a **TypeScript backend** with **Ex
   - [Step 3 — Configure TypeScript (ESM)](#step-3--configure-typescript-esm)
   - [Step 4 — Initialize Prisma](#step-4--initialize-prisma)
   - [Step 5 — Setup Environment Variable](#step-5--setup-environment-variable)
-  - [Step 6 — Database Migration](#step-6--database-migration)
-  - [Step 7 — Generate Prisma Client](#step-7--generate-prisma-client)
-  - [Step 8 — Instantiate Prisma Client](#step-8--instantiate-prisma-client)
-  - [Step 9 — Environment Config Module](#step-9--environment-config-module)
-  - [Step 10 — Create the Express App](#step-10--create-the-express-app)
-  - [Step 11 — Bootstrap the Server](#step-11--bootstrap-the-server)
-  - [Step 12 — Configure package.json Scripts](#step-12--configure-packagejson-scripts)
+  - [Step 6 — Prisma Schema Strategy](#step-6--prisma-schema-strategy)
+  - [Step 7 — Database Migration](#step-7--database-migration)
+  - [Step 8 — Generate Prisma Client](#step-8--generate-prisma-client)
+  - [Step 9 — Instantiate Prisma Client](#step-9--instantiate-prisma-client)
+  - [Step 10 — Environment Config Module](#step-10--environment-config-module)
+  - [Step 11 — Create the Express App](#step-11--create-the-express-app)
+  - [Step 12 — Bootstrap the Server](#step-12--bootstrap-the-server)
+  - [Step 13 — Configure package.json Scripts](#step-13--configure-packagejson-scripts)
 
 ---
 
@@ -239,7 +240,7 @@ bunx --bun prisma init --output ../generated/prisma
 
 After running `prisma init`, the following files are generated with these default contents:
 
-**`prisma.config.ts`**
+**`prisma.config.ts`** *(default — will be updated in Step 6)*
 
 ```ts
 import "dotenv/config";
@@ -256,7 +257,7 @@ export default defineConfig({
 });
 ```
 
-**`prisma/schema.prisma`**
+**`prisma/schema.prisma`** *(default — structure depends on schema strategy chosen in Step 6)*
 
 ```prisma
 generator client {
@@ -289,11 +290,95 @@ DATABASE_URL="postgres://your-connection-string-here"
 
 ---
 
-## Step 6 — Database Migration
+## Step 6 — Prisma Schema Strategy
+
+Before writing your models, decide how you want to organize your Prisma schema. Prisma supports both a **single-file** and a **multi-file** approach.
+
+---
+
+### 📁 Option A — Single File Schema *(simple projects)*
+
+For small projects with around **5–10 models**, keeping everything in one file is the simplest and most maintainable option.
+
+**Directory structure:**
+
+```
+prisma/
+├── migrations/
+└── schema.prisma
+```
+
+No changes are needed to `prisma.config.ts` — the default generated config already points to `prisma/schema.prisma` and works out of the box.
+
+---
+
+### 📂 Option B — Multi-File Schema *(recommended for medium to large projects)*
+
+If your project has **15+ models**, multiple developers, or clearly separated domains (users, products, orders, payments, etc.), splitting the schema across multiple files improves organization and maintainability.
+
+**Directory structure:**
+
+```
+prisma/
+├── migrations/
+├── schema/
+│   ├── schema.prisma       ← generator + datasource block lives here
+│   ├── user.prisma
+│   ├── product.prisma
+│   ├── order.prisma
+│   ├── payment.prisma
+│   └── review.prisma
+```
+
+> [!NOTE]
+> Using a multi-file Prisma schema is considered a **professional and scalable approach** for medium and large projects. Whether it is the best choice depends on the size and complexity of your application.
+
+#### ✏️ Update `prisma.config.ts` for Multi-File Schema
+
+When using the multi-file approach, update the `schema` property in `prisma.config.ts` to point to the **directory** instead of a single file. Also add the optional `seed` script path:
+
+📄 `prisma.config.ts`
+
+```ts
+import { defineConfig, env } from "prisma/config";
+import "dotenv/config";
+
+export default defineConfig({
+  schema: "prisma/schema",
+  migrations: {
+    path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+#### 🔍 What Changed from the Default Config
+
+| Property             | Default Value             | Updated Value       | Reason                                                        |
+| -------------------- | ------------------------- | ------------------- | ------------------------------------------------------------- |
+| `schema`             | `"prisma/schema.prisma"`  | `"prisma/schema"`   | Points to a **directory** instead of a single file           |
+| `migrations.seed`    | *(not set)*               | `"tsx prisma/seed.ts"` | Registers a seed script to populate the database with initial data |
+
+> [!TIP]
+> The `generator client` block and `datasource db` block must live in **one** of the `.prisma` files inside the schema directory — conventionally in `schema/schema.prisma` or a dedicated `schema/base.prisma`.
+
+> [!WARNING]
+> Do **not** mix the single-file and multi-file approaches. If `schema` points to a directory, Prisma expects **all** `.prisma` files inside that directory to form the complete schema — there should be no `schema.prisma` at the `prisma/` root level.
+
+---
+
+You are now ready to write your schema models. ✅
+
+---
+
+## Step 7 — Database Migration
 
 > 📖 [Prisma Migrate Docs](https://www.prisma.io/docs/orm/prisma-migrate/getting-started)
 
-Once your models are defined in `schema.prisma`, create and apply a migration:
+Once your models are defined in your schema file(s), create and apply a migration:
 
 ```bash
 bunx prisma migrate dev
@@ -314,7 +399,7 @@ You will be prompted to name the migration. Example:
 
 ---
 
-## Step 7 — Generate Prisma Client
+## Step 8 — Generate Prisma Client
 
 After migrating, manually generate the Prisma Client:
 
@@ -326,11 +411,11 @@ bunx --bun prisma generate
 > **Prisma v7+ Breaking Change:** `migrate dev` no longer auto-triggers `prisma generate`. You must **always run this step explicitly** after every migration or schema change.
 
 > [!TIP]
-> Re-run `bunx --bun prisma generate` any time you modify your `schema.prisma` file to keep your Prisma Client in sync.
+> Re-run `bunx --bun prisma generate` any time you modify your schema file(s) to keep your Prisma Client in sync.
 
 ---
 
-## Step 8 — Instantiate Prisma Client
+## Step 9 — Instantiate Prisma Client
 
 Create a dedicated file to instantiate and export the Prisma Client. This keeps your database connection centralized and reusable across your project.
 
@@ -371,7 +456,7 @@ export { prisma };
 
 ---
 
-## Step 9 — Environment Config Module
+## Step 10 — Environment Config Module
 
 Instead of accessing `process.env` directly throughout your codebase, centralize all environment variables in a single typed config file. This makes your configuration easier to manage and refactor.
 
@@ -435,7 +520,7 @@ JWT_REFRESH_EXPIRE_IN=7d
 
 ---
 
-## Step 10 — Create the Express App
+## Step 11 — Create the Express App
 
 Create the Express application instance and configure all global middleware. This file is kept separate from the server entry point to maintain a clean separation between **app configuration** and **server startup**.
 
@@ -472,16 +557,16 @@ export default app;
 
 #### 🔍 What Each Part Does
 
-| Part                                       | Purpose                                                                                          |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `Application`                              | TypeScript type for the Express app instance                                                     |
-| `cors({ origin: config.appUrl, ... })`     | Restricts cross-origin requests to only the URL defined in `APP_URL` from your config            |
-| `credentials: true`                        | Allows cookies and authorization headers to be sent with cross-origin requests                   |
-| `express.json()`                           | Parses incoming requests with a **JSON body** and exposes it on `req.body`                       |
-| `express.urlencoded({ extended: true })`   | Parses incoming requests with **URL-encoded form data** and exposes it on `req.body`             |
-| `cookieParser()`                           | Parses cookies from the `Cookie` header and exposes them on `req.cookies`                        |
-| `app.get("/")`                             | A basic health check route to confirm the server is running                                      |
-| `export default app`                       | Exports the configured app instance to be consumed by `server.ts`                                |
+| Part                                     | Purpose                                                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| `Application`                            | TypeScript type for the Express app instance                                         |
+| `cors({ origin: config.appUrl, ... })`   | Restricts cross-origin requests to only the URL defined in `APP_URL` from your config |
+| `credentials: true`                      | Allows cookies and authorization headers to be sent with cross-origin requests       |
+| `express.json()`                         | Parses incoming requests with a **JSON body** and exposes it on `req.body`           |
+| `express.urlencoded({ extended: true })` | Parses incoming requests with **URL-encoded form data** and exposes it on `req.body` |
+| `cookieParser()`                         | Parses cookies from the `Cookie` header and exposes them on `req.cookies`            |
+| `app.get("/")`                           | A basic health check route to confirm the server is running                          |
+| `export default app`                     | Exports the configured app instance to be consumed by `server.ts`                    |
 
 > [!NOTE]
 > Routes and additional middleware (e.g., error handlers, rate limiters) should be registered in this file **before** `export default app`, keeping `server.ts` focused solely on starting the server.
@@ -491,7 +576,7 @@ export default app;
 
 ---
 
-## Step 11 — Bootstrap the Server
+## Step 12 — Bootstrap the Server
 
 Create the server entry point. This file connects to the database and starts the Express server. If anything fails during startup, it gracefully disconnects Prisma and exits the process.
 
@@ -550,7 +635,7 @@ main();
 
 ---
 
-## Step 12 — Configure package.json Scripts
+## Step 13 — Configure package.json Scripts
 
 Update your `package.json` to define the project metadata, scripts, and confirm all dependencies are in place.
 
