@@ -1,7 +1,7 @@
 <!-- Header Badges -->
 <div align="center">
 
-# 🛠️ Backend Setup Guide
+# 🛠️ Backend (Prisma-Express) Server Setup Guide
 
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Bun](https://img.shields.io/badge/Bun-Package_Manager-FBF0DF?style=for-the-badge&logo=bun&logoColor=black)
@@ -31,8 +31,9 @@ A step-by-step reference guide for setting up a **TypeScript backend** with **Ex
   - [Step 7 — Generate Prisma Client](#step-7--generate-prisma-client)
   - [Step 8 — Instantiate Prisma Client](#step-8--instantiate-prisma-client)
   - [Step 9 — Environment Config Module](#step-9--environment-config-module)
-  - [Step 10 — Bootstrap the Server](#step-10--bootstrap-the-server)
-  - [Step 11 — Configure package.json Scripts](#step-11--configure-packagejson-scripts)
+  - [Step 10 — Create the Express App](#step-10--create-the-express-app)
+  - [Step 11 — Bootstrap the Server](#step-11--bootstrap-the-server)
+  - [Step 12 — Configure package.json Scripts](#step-12--configure-packagejson-scripts)
 
 ---
 
@@ -434,7 +435,63 @@ JWT_REFRESH_EXPIRE_IN=7d
 
 ---
 
-## Step 10 — Bootstrap the Server
+## Step 10 — Create the Express App
+
+Create the Express application instance and configure all global middleware. This file is kept separate from the server entry point to maintain a clean separation between **app configuration** and **server startup**.
+
+📄 `src/app.ts`
+
+```ts
+import express, { Application, Request, Response } from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import config from "./config";
+
+const app: Application = express();
+
+// CORS — allow requests from the configured app URL
+app.use(cors({
+  origin: config.appUrl,
+  credentials: true,
+}));
+
+// Body parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Cookie parser
+app.use(cookieParser());
+
+// Health check route
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
+});
+
+export default app;
+```
+
+#### 🔍 What Each Part Does
+
+| Part                                       | Purpose                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `Application`                              | TypeScript type for the Express app instance                                                     |
+| `cors({ origin: config.appUrl, ... })`     | Restricts cross-origin requests to only the URL defined in `APP_URL` from your config            |
+| `credentials: true`                        | Allows cookies and authorization headers to be sent with cross-origin requests                   |
+| `express.json()`                           | Parses incoming requests with a **JSON body** and exposes it on `req.body`                       |
+| `express.urlencoded({ extended: true })`   | Parses incoming requests with **URL-encoded form data** and exposes it on `req.body`             |
+| `cookieParser()`                           | Parses cookies from the `Cookie` header and exposes them on `req.cookies`                        |
+| `app.get("/")`                             | A basic health check route to confirm the server is running                                      |
+| `export default app`                       | Exports the configured app instance to be consumed by `server.ts`                                |
+
+> [!NOTE]
+> Routes and additional middleware (e.g., error handlers, rate limiters) should be registered in this file **before** `export default app`, keeping `server.ts` focused solely on starting the server.
+
+> [!TIP]
+> The `credentials: true` option in CORS **requires** the `origin` to be a specific URL — not a wildcard `*`. Using `*` with `credentials: true` will cause browsers to reject the response.
+
+---
+
+## Step 11 — Bootstrap the Server
 
 Create the server entry point. This file connects to the database and starts the Express server. If anything fails during startup, it gracefully disconnects Prisma and exits the process.
 
@@ -477,9 +534,6 @@ main();
 | `prisma.$disconnect()`  | Gracefully closes the database connection if startup fails                           |
 | `process.exit(1)`       | Exits the process with a failure code so the error doesn't go unnoticed              |
 
-> [!NOTE]
-> `server.ts` expects an `app.ts` file that exports a configured Express instance. Create `src/app.ts` and export your Express app from there before running the server.
-
 > [!TIP]
 > Run your server in development with:
 >
@@ -496,7 +550,7 @@ main();
 
 ---
 
-## Step 11 — Configure package.json Scripts
+## Step 12 — Configure package.json Scripts
 
 Update your `package.json` to define the project metadata, scripts, and confirm all dependencies are in place.
 
@@ -550,11 +604,11 @@ Update your `package.json` to define the project metadata, scripts, and confirm 
 
 #### 🔍 Scripts Reference
 
-| Script          | Command                      | Purpose                                                                 |
-| --------------- | ---------------------------- | ----------------------------------------------------------------------- |
-| `bun run dev`   | `tsx watch src/server.ts`    | Starts the dev server with **hot reload** — restarts on file changes    |
-| `bun run build` | `tsc`                        | Compiles TypeScript source files into JavaScript inside `dist/`         |
-| `bun run start` | `node dist/server.js`        | Runs the compiled production build from `dist/`                         |
+| Script          | Command                   | Purpose                                                              |
+| --------------- | ------------------------- | -------------------------------------------------------------------- |
+| `bun run dev`   | `tsx watch src/server.ts` | Starts the dev server with **hot reload** — restarts on file changes |
+| `bun run build` | `tsc`                     | Compiles TypeScript source files into JavaScript inside `dist/`      |
+| `bun run start` | `node dist/server.js`     | Runs the compiled production build from `dist/`                      |
 
 > [!NOTE]
 > `tsx watch` is used for development instead of `bun --watch` to ensure compatibility with the TypeScript compiler options configured in `tsconfig.json`.
