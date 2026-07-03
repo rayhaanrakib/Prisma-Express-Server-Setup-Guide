@@ -3,6 +3,19 @@
 
 # 🛠️ Backend (Prisma-Express) Server Setup Guide
 
+<!-- Language & Package Manager Switcher -->
+<div style="margin: 20px 0;">
+  <a href="README.md">
+    <img src="https://img.shields.io/badge/📦_Bun-Primary-FBF0DF?style=for-the-badge&labelColor=14151a&color=f472b6" alt="Bun Version">
+  </a>
+  <a href="README_NPM.md">
+    <img src="https://img.shields.io/badge/📦_npm-Alternative-CB3837?style=for-the-badge&labelColor=14151a&color=60a5fa" alt="npm Version">
+  </a>
+  <a href="README_BN.md">
+    <img src="https://img.shields.io/badge/🇧🇩_বাংলা-Bengali-006A4E?style=for-the-badge&labelColor=14151a&color=a78bfa" alt="Bengali Version">
+  </a>
+</div>
+
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Bun](https://img.shields.io/badge/Bun-Package_Manager-FBF0DF?style=for-the-badge&logo=bun&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-ESM-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
